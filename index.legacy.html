@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>咖啡资本论：从手工滴滤到商业帝国 (Coffee Capital)</title>
+  <link rel="stylesheet" href="styles.css?v=a0.7.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="device.js?v=a0.7.0"></script>
+</head>
+<body>
+  <!-- 动态弥散光晕背景 -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <div id="app-container">
+    <!-- ================== 顶部磨砂玻璃 HUD ================== -->
+    <header class="glass-panel hud-header">
+      <div class="brand-section">
+        <div class="logo-badge">☕</div>
+        <div class="brand-info">
+          <div class="brand-title-row">
+            <h1>咖啡资本论</h1>
+            <span class="game-version-tag" id="game-version-badge">a0.8.0</span>
+          </div>
+          <div class="sub-tag">
+            <span class="live-dot"></span>
+            <span>增量帝国 · 商业模拟</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心资产储备常驻大字号面板 -->
+      <div class="hud-currencies-group">
+        <!-- 资产储备 -->
+        <div class="currency-primary-box" id="rmb-primary-box">
+          <div class="currency-label-row">
+            <span>RMB (r) 资产储备</span>
+          </div>
+          <div class="rmb-main-val" id="rmb-display">¥11.20</div>
+          <div class="rate-pill neutral" id="rate-pill-badge">
+            <span id="rate-sign">+</span><span id="net-rate-val">0.0</span>/秒
+          </div>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- ================== 磨砂玻璃标签导航 ================== -->
+    <nav class="glass-panel tabs-navigation" id="main-tabs-nav">
+      <button class="tab-btn active" data-tab="tab-workshop" id="nav-btn-workshop">
+        <span class="tab-icon">☕</span>
+        <span class="tab-label">升级树</span>
+        <span class="tab-badge badge-filter" id="badge-filter-count">0/10</span>
+        <span class="tab-badge badge-prestige" id="badge-prestige-ready" style="display: none;">可重置</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-achievements" id="nav-btn-achievements">
+        <span class="tab-icon">🏆</span>
+        <span class="tab-label"><span class="tab-label-full">成就里程碑</span><span class="tab-label-short">成就</span></span>
+        <span class="tab-badge badge-info" id="badge-achieve-count">0/45</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-help" id="nav-btn-help">
+        <span class="tab-icon">📖</span>
+        <span class="tab-label"><span class="tab-label-full">游戏帮助</span><span class="tab-label-short">帮助</span></span>
+      </button>
+      <button class="tab-btn" data-tab="tab-settings" id="nav-btn-settings">
+        <span class="tab-icon">⚙️</span>
+        <span class="tab-label"><span class="tab-label-full">系统设置</span><span class="tab-label-short">设置</span></span>
+      </button>
+    </nav>
+
+    <!-- ================== 页面面板 1: 滴滤小摊与重置 (树形架构) ================== -->
+    <section class="tab-pane active" id="tab-workshop">
+      <!-- 树形架构导航栏 -->
+      <div class="glass-panel tree-hierarchy-nav">
+        <div class="tree-hierarchy-wrapper">
+          <!-- 上方按键行：每日签到 与 滴滤小摊 并排自适应展示 -->
+          <div class="tree-arch-row top-row">
+            <button class="tree-arch-btn daily-btn" id="btn-tree-daily" data-subview="daily" style="display: none;">
+              <span class="tree-arch-emoji">📅</span>
+              <span class="tree-arch-text">每日签到</span>
+              <span class="tree-arch-badge alert" id="tree-badge-daily">可领取</span>
+            </button>
+
+            <button class="tree-arch-btn active" id="btn-tree-workshop" data-subview="workshop">
+              <span class="tree-arch-emoji">☕</span>
+              <span class="tree-arch-text">滴滤小摊</span>
+              <span class="tree-arch-badge" id="tree-badge-filter">0/10</span>
+            </button>
+          </div>
+
+          <!-- 树形连接线条与分支节点 (SVG 分支连线：滴滤小摊与每日签到向下汇聚连接至摆摊经验) -->
+          <div class="tree-arch-stem-container" id="tree-arch-stem-container">
+            <svg class="tree-arch-svg" id="tree-arch-svg" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="stem-gradient-workshop" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="38">
+                  <stop offset="0%" stop-color="#f59e0b" />
+                  <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+                <linearGradient id="stem-gradient-daily" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="38">
+                  <stop offset="0%" stop-color="#06b6d4" />
+                  <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+              </defs>
+              <path id="stem-path-workshop" class="stem-path stem-path-workshop" d="M 240 0 L 240 32" stroke="url(#stem-gradient-workshop)" />
+              <path id="stem-path-daily" class="stem-path stem-path-daily" style="display: none;" stroke="url(#stem-gradient-daily)" />
+              <circle id="stem-joint-node" cx="240" cy="19" r="4.5" class="stem-joint-node" />
+              <polygon id="stem-arrow-head" points="235,30 245,30 240,37" class="stem-arrow-head" />
+            </svg>
+          </div>
+
+          <!-- 下方按键行：摆摊经验 与 无标题 同级同行展示，并以连线贯通 -->
+          <div class="tree-arch-row bottom-row">
+            <button class="tree-arch-btn prestige-btn" id="btn-tree-prestige" data-subview="prestige">
+              <span class="tree-arch-emoji">🎒</span>
+              <span class="tree-arch-text">摆摊经验</span>
+              <span class="tree-arch-badge alert" id="tree-badge-prestige" style="display: none;">可获取经验</span>
+            </button>
+
+            <!-- 摆摊经验与无标题之间的连接线 (达成匠人精神解锁时显现) -->
+            <div class="tree-arch-connector prestige-untitled-connector" id="tree-arch-prestige-untitled-connector" style="display: none;">
+              <svg class="prestige-untitled-svg" viewBox="0 0 44 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="grad-prestige-untitled" gradientUnits="userSpaceOnUse" x1="0" y1="10" x2="44" y2="10">
+                    <stop offset="0%" stop-color="#a855f7" />
+                    <stop offset="50%" stop-color="#06b6d4" />
+                    <stop offset="100%" stop-color="#34d399" />
+                  </linearGradient>
+                </defs>
+                <line x1="3" y1="10" x2="35" y2="10" stroke="url(#grad-prestige-untitled)" stroke-width="2.5" stroke-linecap="round" class="prestige-untitled-line" />
+                <circle cx="3" cy="10" r="3" fill="#a855f7" />
+                <polygon points="32,6 41,10 32,14" fill="#34d399" />
+              </svg>
+            </div>
+
+            <!-- 无标题升级树 (累计售出咖啡>=300杯/达成匠人精神成就时同级同行展示) -->
+            <button class="tree-arch-btn untitled-btn" id="btn-tree-untitled" data-subview="untitled" style="display: none;">
+              <span class="tree-arch-emoji">🌳</span>
+              <span class="tree-arch-text">无标题</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子界面 1: 滴滤小摊 -->
+      <div class="tree-subview-panel active" id="subview-workshop">
+        <div class="workshop-grid">
+        <!-- 左侧：滴滤咖啡小摊 -->
+        <div class="glass-panel coffee-stall-panel" id="coffee-stall-panel">
+          <div class="panel-header-row">
+            <h2><span>☕</span> 滴滤咖啡小摊</h2>
+            <span class="badge-limit" id="filter-capacity-tag">已购置 滴滤器: 0 / 10 台</span>
+          </div>
+
+          <!-- 操作条：开始萃取 与 自动/手动模式切换 -->
+          <div class="craft-actions-bar" style="margin-top: 16px; margin-bottom: 4px;">
+            <button class="btn-accent-brew" id="batch-brew-btn" disabled>
+              <span id="batch-brew-icon">⚡</span> <span id="batch-brew-text">开始萃取</span>
+            </button>
+            <button class="btn-auto-toggle auto" id="auto-drip-toggle-btn" style="display: none;" title="点击切换自动/手动模式">
+              <span id="auto-toggle-icon">🤖</span> <span id="auto-toggle-text">自动中 (切手动)</span>
+            </button>
+          </div>
+
+          <!-- 购买咖啡滴滤器横幅 -->
+          <div class="equipment-purchase-card">
+            <div class="equip-details">
+              <h3><span>☕</span> 购买咖啡滴滤器</h3>
+              <p>基础售价: <strong id="filter-cost-display">¥10.00</strong> · 购买硬上限: 10 台 · 制作耗时: <span id="brew-speed-display">3.0</span>秒/杯 · 制作成本: <span id="brew-cost-display">¥1.20</span>/杯</p>
+            </div>
+            <button class="buy-btn" id="buy-filter-btn">
+              <span>购买咖啡滴滤器 (¥10)</span>
+            </button>
+          </div>
+
+          <!-- 滴滤器卡槽网格 (0~10台) -->
+          <div class="drip-slots-grid" id="drip-slots-container">
+            <!-- 动态生成 滴滤器 槽位卡片 -->
+          </div>
+        </div>
+
+        <!-- 右侧：库存销售遥测与第一层级快捷升级 -->
+        <div class="workshop-sidebar">
+          <!-- 咖啡库存与自动销售监控 -->
+          <div class="glass-panel inventory-summary-card">
+            <div class="panel-header-row" style="padding: 0 0 12px 0; margin-bottom: 4px;">
+              <h2><span>📦</span> 咖啡库存与客流销售</h2>
+              <span class="slot-mode-tag auto" id="sales-status-tag">自动销售运转中</span>
+            </div>
+
+            <div class="coffee-stock-display">
+              <div class="stock-icon-large">☕</div>
+              <div class="stock-text-col">
+                <span class="label">已萃取滴滤咖啡库存</span>
+                <span class="stock-num" id="coffee-stock-display">0 杯</span>
+              </div>
+            </div>
+
+            <!-- 销售遥测明细 -->
+            <div class="sales-telemetry-list">
+              <div class="telemetry-item">
+                <span class="t-label">计数频率:</span>
+                <span class="t-value" id="sales-freq-display">1.00 份/秒</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="t-label">客流基础达成概率:</span>
+                <span class="t-value" id="traffic-rate-display">50% (0.5x 基础客流)</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="t-label">销售价格倍数:</span>
+                <span class="t-value" id="price-mult-display">1.00x</span>
+              </div>
+              <div class="telemetry-item highlight-sale">
+                <span class="t-label">当前实际单杯售价:</span>
+                <span class="t-value" id="final-price-display">¥3.00</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="t-label">单杯制作成本:</span>
+                <span class="t-value" id="unit-cost-display">¥1.20</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="t-label">单杯净利润:</span>
+                <span class="t-value" id="profit-per-cup" style="color: #34d399;">+¥1.80</span>
+              </div>
+            </div>
+
+            <!-- 计数频率独立升级 -->
+            <div class="equipment-purchase-card" style="margin: 14px 0 0 0; padding: 12px 16px;">
+              <div class="equip-details">
+                <h3 style="font-size: 0.92rem;"><span>📈</span> 升级计数频率 <span class="badge-limit" id="freq-level-badge">Lv.0</span></h3>
+                <p style="font-size: 0.78rem;">提供 1.20x 倍率 · 当前: <strong id="freq-mult-text" style="color: #fcd34d;">1.00x</strong></p>
+              </div>
+              <button class="buy-btn" id="btn-upgrade-freq" style="padding: 8px 16px; font-size: 0.82rem;">
+                <span id="freq-upgrade-btn-text">升级 ¥5.00</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 升级树结构 (取代原特惠升级界面) -->
+          <div class="glass-panel tree-container-wrapper">
+            <div class="tree-header-controls">
+              <div>
+                <h2><span>🌳</span> 升级</h2>
+              </div>
+              <div class="tree-legend">
+                <div class="legend-item"><span class="legend-dot locked"></span><span>未解锁前置</span></div>
+                <div class="legend-item"><span class="legend-dot available"></span><span>可研发</span></div>
+                <div class="legend-item"><span class="legend-dot active"></span><span>已激活</span></div>
+              </div>
+            </div>
+
+            <div class="tree-canvas-board" id="tree-canvas-board">
+              <svg class="tree-svg-canvas" id="tree-svg-canvas"></svg>
+              <div class="tree-branch-columns" id="tree-branch-columns">
+                <!-- 动态渲染分支树节点 -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <!-- 子界面 2: 摆摊经验 -->
+      <div class="tree-subview-panel" id="subview-prestige" style="display: none;">
+        <div class="prestige-container">
+          <!-- 经验总览资产条 -->
+          <div class="glass-panel ep-stats-bar">
+            <div class="ep-stat-item">
+              <span class="ep-stat-icon">💡</span>
+              <div class="ep-stat-content">
+                <span class="ep-stat-label">可用摆摊经验</span>
+                <span class="ep-stat-value" id="ep-current-display">0.0 EP</span>
+              </div>
+            </div>
+            <div class="ep-stat-item">
+              <span class="ep-stat-icon">🔄</span>
+              <div class="ep-stat-content">
+                <span class="ep-stat-label">摆摊重置次数</span>
+                <span class="ep-stat-value" id="ep-reset-count">0 次</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 累计获得经验与 3 EP 记下笔记里程碑横向宽大进度条 -->
+          <div class="glass-panel ep-cumulative-panel">
+            <div class="ep-cum-header">
+              <div class="ep-cum-title-group">
+                <div class="ep-cum-icon">📈</div>
+                <div>
+                  <div class="ep-cum-title-row">
+                    <h3>累计获得经验</h3>
+                    <span class="badge-limit" id="ep-cum-status-badge">需 3.0 EP · 不再重置滴滤小摊</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ep-cum-total-stat">
+                <span class="ep-cum-stat-label">历史累计获得</span>
+                <span class="ep-cum-stat-val" id="ep-total-display">0.0 EP</span>
+              </div>
+            </div>
+
+            <!-- 横向宽大进度条轨道与 3 EP 里程碑标记 -->
+            <div class="ep-cum-track-container">
+              <div class="ep-cum-progress-bar">
+                <div class="ep-cum-progress-fill" id="ep-cum-progress-fill" style="width: 0%;"></div>
+                <!-- 3 EP 里程碑刻度线与悬浮标记 -->
+                <div class="ep-cum-milestone-marker" id="ep-cum-milestone-marker">
+                  <div class="milestone-pin">
+                    <span class="milestone-pin-icon">📝</span>
+                    <span class="milestone-pin-text">3 EP · 不再重置滴滤小摊</span>
+                  </div>
+                  <div class="milestone-line"></div>
+                </div>
+              </div>
+              <div class="ep-cum-track-labels">
+                <span class="track-label-start">0 EP</span>
+                <span class="track-label-mid" id="ep-track-label-mid">目标: 3.0 EP (不再重置滴滤小摊)</span>
+                <span class="track-label-end" id="ep-cum-progress-text">累计: 0.0 / 3.0 EP</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 摆摊经验重置卡片 -->
+          <div class="glass-panel prestige-tier-card ep-prestige-card">
+            <div class="prestige-badge-row">
+              <span class="p-level-tag">第二级重置 · 摆摊经验</span>
+              <span class="badge-limit" id="prestige-limit-badge">需 ¥100 现金</span>
+            </div>
+
+            <div class="p-details">
+              <h3><span>🎒</span> 沉淀摆摊经验 (Stall Experience)</h3>
+              <p>
+                将当前滴滤小摊的辛勤劳作转化为宝贵的经商智慧！
+                <br>
+                <strong>重置规则：</strong>现金达 <strong>¥100.00</strong> 时可重置
+              </p>
+            </div>
+
+            <div class="prestige-gain-box">
+              <div class="ep-gain-main-row">
+                <span class="gain-label">本次重置可获得经验:</span>
+                <span class="gain-value" id="prestige-ep-gain">+0 EP</span>
+              </div>
+              <div class="next-ep-progress-wrap">
+                <div class="next-ep-hint-text" id="prestige-next-ep-hint">下一经验点需达成 ¥100.00 (还差 ¥100.00)</div>
+                <div class="next-ep-progress-bar">
+                  <div class="next-ep-progress-fill" id="prestige-ep-progress-fill" style="width: 0%;"></div>
+                </div>
+                <!-- 实时智能经营与转生建议 (随资产增长毫秒级实时变动) -->
+                <div class="edge-prestige-tip" id="edge-prestige-tip">
+                  <span class="tip-icon" id="edge-prestige-tip-icon">💡</span>
+                  <span class="tip-content" id="edge-prestige-tip-content">经营建议: 资金尚未达到重置门槛，需累积 ¥100.00 达成 1 EP</span>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-prestige-execute" id="btn-execute-stall-prestige" disabled>
+              执行摆摊经验重置 (获取 +0 EP)
+            </button>
+          </div>
+
+          <!-- 摆摊经验专属升级板块 -->
+          <div class="ep-upgrades-section">
+            <div class="ep-upgrades-header">
+              <h3><span>🌟</span> 摆摊经验进阶研发</h3>
+              <span class="ep-upgrades-subtitle">消耗 EP 经验点数解锁永久强力加成，重置后永久保留</span>
+            </div>
+
+            <div class="ep-upgrades-grid">
+              <!-- 升级 1: 自动滴滤 -->
+              <div class="glass-panel ep-upgrade-card" id="ep-card-autodrip">
+                <div class="ep-card-top">
+                  <span class="ep-card-icon">🤖</span>
+                  <div class="ep-card-info">
+                    <h4>自动滴滤</h4>
+                    <span class="ep-cost-tag" id="ep-cost-autodrip">1 EP</span>
+                  </div>
+                </div>
+                <div class="ep-card-desc">解放双手！解锁自动循环萃取，可随时在自动/手动模式间切换，重置后永久生效！</div>
+                <div class="ep-card-footer">
+                  <span class="ep-card-status" id="ep-status-autodrip">未研发</span>
+                  <button class="btn-ep-buy" id="btn-ep-buy-autodrip">研发 (1 EP)</button>
+                </div>
+              </div>
+
+              <!-- 升级 3: 新鲜现磨不隔夜 -->
+              <div class="glass-panel ep-upgrade-card" id="ep-card-fresh">
+                <div class="ep-card-top">
+                  <span class="ep-card-icon">☕</span>
+                  <div class="ep-card-info">
+                    <h4>新鲜现磨不隔夜</h4>
+                    <span class="ep-cost-tag" id="ep-cost-fresh">2 EP</span>
+                  </div>
+                </div>
+                <div class="ep-card-desc">咖啡就要现磨！大幅提升计数频率收益，使每次频率升级的效果由 1.20x 跃升至 1.50x！</div>
+                <div class="ep-card-footer">
+                  <span class="ep-card-status" id="ep-status-fresh">未研发</span>
+                  <button class="btn-ep-buy" id="btn-ep-buy-fresh">研发 (2 EP)</button>
+                </div>
+              </div>
+
+              <!-- 升级 3: 定价是我说了算的 -->
+              <div class="glass-panel ep-upgrade-card" id="ep-card-pricing">
+                <div class="ep-card-top">
+                  <span class="ep-card-icon">🏷️</span>
+                  <div class="ep-card-info">
+                    <h4>定价是我说了算的 <span class="badge-limit" id="ep-level-pricing">Lv.0</span></h4>
+                    <span class="ep-cost-tag" id="ep-cost-pricing">1 EP</span>
+                  </div>
+                </div>
+                <div class="ep-card-desc">我的咖啡我做主！为咖啡销售价格提供 x2 倍数加成，首次升级 1 EP，后续每次升级价格翻倍！</div>
+                <div class="ep-card-footer">
+                  <span class="ep-card-status" id="ep-status-pricing">当前加成: 1.0x</span>
+                  <button class="btn-ep-buy" id="btn-ep-buy-pricing">升级 (1 EP)</button>
+                </div>
+              </div>
+
+              <!-- 升级 4: 煽动家 -->
+              <div class="glass-panel ep-upgrade-card" id="ep-card-agitator">
+                <div class="ep-card-top">
+                  <span class="ep-card-icon">📢</span>
+                  <div class="ep-card-info">
+                    <h4>煽动家</h4>
+                    <span class="ep-cost-tag" id="ep-cost-agitator">3 EP</span>
+                  </div>
+                </div>
+                <div class="ep-card-desc">三寸不烂之舌引爆人潮！为摊位客流提供整整 x2 倍数加成！</div>
+                <div class="ep-card-footer">
+                  <span class="ep-card-status" id="ep-status-agitator">未研发</span>
+                  <button class="btn-ep-buy" id="btn-ep-buy-agitator">研发 (3 EP)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子界面 3: 每日签到与点数工坊 -->
+      <div class="tree-subview-panel" id="subview-daily" style="display: none;">
+        <div class="glass-panel daily-main-panel">
+          <div class="panel-header-row">
+            <div class="daily-header-title">
+              <h2><span>📅</span> 每日签到与点数工坊</h2>
+              <p class="daily-header-subtitle">每 24 小时可手动领取 1 每日点数 (DP)，永久强化咖啡经营核心要素（非复利加成）</p>
+            </div>
+            <div class="daily-dp-badge-container">
+              <span class="dp-balance-label">当前可用</span>
+              <div class="dp-balance-value"><span id="daily-dp-balance">0</span> <span class="dp-unit">DP</span></div>
+            </div>
+          </div>
+
+          <!-- 签到领取主区域 -->
+          <div class="daily-claim-card">
+            <div class="daily-claim-info">
+              <div class="daily-chest-icon">🎁</div>
+              <div class="daily-claim-status-body">
+                <div class="daily-status-title" id="daily-status-title">今日签到奖励已就绪</div>
+                <div class="daily-status-desc" id="daily-status-desc">点击右侧按钮立即领取 1 每日点数 (DP)，可任意分配强化效果！</div>
+                <!-- 冷却进度条 -->
+                <div class="daily-cooldown-wrapper" id="daily-cooldown-wrapper" style="display: none;">
+                  <div class="daily-cooldown-bar-bg">
+                    <div class="daily-cooldown-bar-fill" id="daily-cooldown-bar-fill" style="width: 100%;"></div>
+                  </div>
+                  <div class="daily-cooldown-hint" id="daily-cooldown-hint">距离下次签到：23:59:59</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="daily-claim-action">
+              <button class="btn-daily-claim" id="btn-daily-claim">
+                <span class="btn-claim-icon">✨</span>
+                <span class="btn-claim-text" id="btn-daily-claim-text">立即签到 (+1 DP)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- DP 点数加成投入对象区 -->
+          <div class="daily-invest-section">
+            <div class="invest-section-header">
+              <div class="invest-title-row">
+                <h3><span>⚡</span> DP 点数加成投入</h3>
+                <span class="invest-badge-hint">加成均不复利 · 线性累加</span>
+              </div>
+              <p class="invest-desc">投入 1 DP 即可升级对应的核心增益。加成对象随游戏进度不断解锁，当前已解锁 2 个基础对象：</p>
+            </div>
+
+            <!-- 加成对象卡片网格 (JS 动态渲染) -->
+            <div class="daily-targets-grid" id="daily-targets-grid">
+              <!-- 动态注入加成卡片 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 子界面 4: 无标题升级树 (达成匠人精神累计售出300杯咖啡后解锁) -->
+      <div class="tree-subview-panel" id="subview-untitled" style="display: none;">
+        <div class="glass-panel untitled-main-panel">
+          <!-- 标题栏：单行仅显示无标题升级树字样与动态状态徽章 -->
+          <div class="untitled-header-single">
+            <h2><span>🌳</span> 无标题升级树</h2>
+            <div id="untitled-overload-badge" class="untitled-overload-badge" style="display: none;">
+              <span class="overload-flame">🔥</span> 临界超载中 <span id="untitled-overload-time">3.0s</span>
+            </div>
+            <div id="untitled-beta-badge" class="untitled-beta-badge" style="display: none;">
+              <span class="beta-icon">🌌</span> <span id="untitled-beta-text">持有 0 β</span>
+            </div>
+          </div>
+
+          <!-- 阿尔法核心数据单行栏 (取消进度条，合并为单行) -->
+          <div class="untitled-alpha-row-bar">
+            <!-- 1. 当前阿尔法储备 -->
+            <div class="alpha-row-item primary">
+              <span class="alpha-row-label"><span class="alpha-pulse-indicator"></span>当前阿尔法储备</span>
+              <div class="alpha-row-val-group">
+                <span class="alpha-row-val" id="alpha-amount-display">0</span>
+                <span class="alpha-row-unit">α</span>
+              </div>
+            </div>
+
+            <!-- 2. 生成速率与单点节奏 -->
+            <div class="alpha-row-item">
+              <span class="alpha-row-label">生成速率</span>
+              <div class="alpha-row-val-group">
+                <span class="alpha-row-val rate" id="alpha-rate-display">+0.0 α/秒</span>
+              </div>
+              <span class="alpha-row-sub" id="alpha-cadence-text">未激活 (需购买 #11)</span>
+            </div>
+
+            <!-- 3. 累计获取 -->
+            <div class="alpha-row-item">
+              <span class="alpha-row-label">累计获取</span>
+              <div class="alpha-row-val-group">
+                <span class="alpha-row-val total" id="alpha-total-display">0 α</span>
+              </div>
+              <span class="alpha-row-sub">始源维度历史总量</span>
+            </div>
+          </div>
+
+          <!-- 升级节点可移动缩放交互大视口 (Pan & Zoom Viewport) -->
+          <div class="untitled-viewport-container" id="untitled-viewport-container">
+            <!-- 悬浮交互视口控制器 -->
+            <div class="untitled-viewport-controls">
+              <button class="btn-viewport-ctrl" id="btn-untitled-zoom-in" title="放大 (+)">
+                <span>＋</span>
+              </button>
+              <button class="btn-viewport-ctrl" id="btn-untitled-zoom-out" title="缩小 (-)">
+                <span>－</span>
+              </button>
+              <button class="btn-viewport-ctrl badge-ctrl" id="btn-untitled-zoom-reset" title="复位 100%">
+                <span id="untitled-zoom-level-text">100%</span>
+              </button>
+              <button class="btn-viewport-ctrl icon-ctrl" id="btn-untitled-recenter" title="居中聚焦">
+                <span>🎯</span>
+              </button>
+            </div>
+
+            <!-- 底部操作提示浮标 -->
+            <div class="untitled-viewport-hint" id="untitled-viewport-hint">
+              <span>🖱️ 拖拽画布可任意平移 · 滚轮/双指缩放</span>
+            </div>
+
+            <!-- 内部大页面画布 (可在视口内任意上下左右平移与缩放) -->
+            <div class="untitled-tree-canvas" id="untitled-tree-canvas">
+              <svg id="untitled-tree-svg" class="untitled-tree-svg"></svg>
+              <div class="untitled-tree-nodes-container" id="untitled-tree-nodes-container">
+                <!-- 动态渲染各行节点：Row 1 (#11 开始吧), Row 2 (#21 双生共振)... -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+
+
+    <!-- ================== 页面面板 5: 成就里程碑 ================== -->
+    <section class="tab-pane" id="tab-achievements">
+      <div class="achievements-container">
+        <div class="glass-panel achieve-progress-banner">
+          <div class="banner-left">
+            <h2><span>🏆</span> 咖啡商业传奇 · 成就勋章</h2>
+            <p>每获得一个成就为售价加入 1.02x 复利加成 · 当前售价加成: <strong id="achieve-mult-display" style="color: #34d399;">1.000x</strong></p>
+          </div>
+          <div class="banner-right" style="display: flex; align-items: center; gap: 14px;">
+            <div class="progress-track-wide">
+              <div class="progress-fill-wide" id="achieve-progress-fill"></div>
+            </div>
+            <span style="font-family: var(--font-mono); font-weight: 700;" id="achieve-percent-text">0% (0/45)</span>
+          </div>
+        </div>
+
+        <div class="achievements-grid" id="achievements-grid">
+          <!-- 动态渲染成就卡片 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================== 页面面板: 游戏帮助与算法指南 ================== -->
+    <section class="tab-pane" id="tab-help">
+      <div class="help-container">
+        <!-- 帮助顶栏总览横幅 -->
+        <div class="glass-panel help-banner">
+          <div class="help-banner-left">
+            <h2><span>📖</span> 咖啡商业帝国 · 经营帮助与算法指南</h2>
+            <p>全景解构滴滤萃取、客流演算、升级树倍率与数值膨胀的核心公式</p>
+          </div>
+          <div class="help-banner-right">
+            <button class="btn-help-toggle-all" id="btn-help-toggle-all">
+              <span id="help-toggle-all-text">展开全部卡片</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 可折叠手风琴卡片列表 -->
+        <div class="help-accordion-list" id="help-accordion-list">
+          
+          <!-- 卡片 1: ☕ 手冲萃取与设备扩建 -->
+          <div class="glass-panel help-card" data-help-id="drip">
+            <div class="help-header">
+              <div class="help-header-left">
+                <span class="help-icon">☕</span>
+                <div class="help-title-group">
+                  <h3>手冲萃取与设备扩建</h3>
+                  <p>滴滤耗时、10台设备上限与首杯原料成本保护法则</p>
+                </div>
+              </div>
+              <div class="help-header-right">
+                <span class="help-pill">核心生产</span>
+                <span class="help-toggle-arrow">▼</span>
+              </div>
+            </div>
+            <div class="help-body">
+              <div class="help-body-inner">
+                <div class="help-section">
+                  <div class="help-section-title">📦 设备槽位与并行生产</div>
+                  <p>您初始拥有 1 台手冲滴滤器，可在小摊主界面花费资金扩建更多设备，<strong>最高上限为 10 台</strong>。每台新设备固定售价 <strong>¥10.00</strong>。当拥有多台设备时，点击<strong>【全部开始萃取】</strong>可一键并行启动所有空闲滴滤器，极大提升批量生产效率。</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">⏱️ 基础萃取耗时与速度升级</div>
+                  <p>默认单杯手冲萃取时间为 <strong>3.0 秒</strong>。随着科技升级树中【提升速度】的研发，萃取时间可缩短至 2.0 秒、1.0 秒，极限达到 <strong>0.5 秒/杯</strong>。</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">🛡️ 原料制作成本与第一杯绝对保护法则</div>
+                  <p>单杯基础原豆原料成本为 <strong>¥1.20</strong>。为了杜绝恶性卡死，游戏建立了严密的数值保护防线：</p>
+                  <div class="formula-box">
+                    <div class="formula-line"><span class="formula-label">新手与重置首杯成本:</span> <span class="formula-math">Cost<sub>first</sub> = ¥1.20 (恒定锁定)</span></div>
+                    <div class="formula-desc">无论摆摊经验(EP定价)、每日点数(DP加成)还是后续售出倍数如何提升，起步阶段与每次重置后的首杯制作成本永远严格保底为 ¥1.20。这确保了购买滴滤器(¥10)后剩余的 ¥1.20 永远能顺利启动第一杯！</div>
+                  </div>
+                  <div class="formula-box" style="margin-top: 10px;">
+                    <div class="formula-line"><span class="formula-label">中后期进阶制作成本公式:</span> <span class="formula-math">Cost = 1.20 × √(综合售价倍率) × 1.002<sup>(售出咖啡数 - 1)</sup></span></div>
+                    <div class="formula-desc">当顺利售出首杯后，单杯原料制作成本将随已售出咖啡的数量呈<strong>指数公式 (1.002<sup>N</sup>)</strong>持续增长，售卖数量越大，原豆原料与萃取损耗成本越高！同时结合售价倍数平方根平缓跟涨，并设 90% 实际售价防倒挂保护，确保单杯永远维持正向利润空间。</div>
+                  </div>
+                  <div class="formula-box" style="margin-top: 10px;">
+                    <div class="formula-line"><span class="formula-label">防破产破局保底:</span> <span class="formula-math">if (Stock == 0 &amp;&amp; 资金 ≥ 1.20 &amp;&amp; 资金 &lt; Cost) ➔ Cost = ¥1.20</span></div>
+                    <div class="formula-desc">若手头已无咖啡库存且无设备运转，而资金不足以上涨后的成本但大于等于 ¥1.20，系统将保底允许以 ¥1.20 制作破局，永远不会陷入死局。</div>
+                  </div>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">🍶 咖啡库存容量</div>
+                  <p>初始最大成品咖啡储存上限为 <strong>20 杯</strong>。当库存达到上限时，萃取完成的咖啡无法出杯，必须等待客流售出腾出库容。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片 2: 📈 客流推演与销售算法 -->
+          <div class="glass-panel help-card" data-help-id="sales">
+            <div class="help-header">
+              <div class="help-header-left">
+                <span class="help-icon">📈</span>
+                <div class="help-title-group">
+                  <h3>客流推演与销售算法</h3>
+                  <p>50%基础客流、销售频率、双杯连售几率与单杯售出单价公式</p>
+                </div>
+              </div>
+              <div class="help-header-right">
+                <span class="help-pill">销售变现</span>
+                <span class="help-toggle-arrow">▼</span>
+              </div>
+            </div>
+            <div class="help-body">
+              <div class="help-body-inner">
+                <div class="help-section">
+                  <div class="help-section-title">👥 基础客流率与到店判定</div>
+                  <p>摊位初始基础客流率为 <strong>50%</strong>。当销售计时周期到达时，系统将生成一次顾客到达判定：若随机判定命中客流率，且当前有咖啡库存，顾客将立即购买并结算收益。</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">⚡ 计数频率 (Sales Frequency) 升级与公式</div>
+                  <p>计数频率决定每秒钟触发客流购买判定的次数，初始为 <strong>1.00 次/秒</strong>。可在小摊主界面直接升级：</p>
+                  <div class="formula-box">
+                    <div class="formula-line"><span class="formula-label">频率升级价格公式:</span> <span class="formula-math">Cost(x) = 5.00 × 1.75<sup>x</sup> (元)</span></div>
+                    <div class="formula-desc">以增量游戏经典平滑指数增长，x 为当前频率升级等级 (Lv.0 起步)。</div>
+                  </div>
+                  <div class="formula-box" style="margin-top: 10px;">
+                    <div class="formula-line"><span class="formula-label">实际触发频率公式:</span> <span class="formula-math">Freq = 1.00 × (BaseMultiplier)<sup>x</sup> (次/秒)</span></div>
+                    <div class="formula-desc">默认每次升级乘数为 <strong>1.20x</strong>；研发摆摊经验中的【现磨不隔夜】后，倍数升级为 <strong>1.50x 复利</strong>！</div>
+                  </div>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">☕☕ 双杯连售几率</div>
+                  <p>当摊位咖啡库存 <strong>≥ 2 杯</strong> 且客流率较高时，每次销售判定有概率同时触发<strong>双杯连售</strong>，单次交易售出 2 杯咖啡，资金与销售统计双倍结算！</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">💰 最终单杯售价总计算公式</div>
+                  <div class="formula-box">
+                    <div class="formula-line"><span class="formula-label">实际售出单价:</span> <span class="formula-math">Price = ¥3.00 × Mult<sub>sales</sub> × 2<sup>PricingLevel</sup> × 1.02<sup>AchieveCount</sup> × (1 + 1.5 × DP<sub>price</sub>)</span></div>
+                    <div class="formula-desc">
+                      • <strong>¥3.00</strong>：基础咖啡售价（初始纯利 ¥3.00 - ¥1.20 = +¥1.80/杯）；<br>
+                      • <strong>Mult<sub>sales</sub></strong>：主线销售倍率；<br>
+                      • <strong>2<sup>PricingLevel</sup></strong>：进阶研发【定价是我说了算的】指数倍数；<br>
+                      • <strong>1.02<sup>AchieveCount</sup></strong>：成就里程碑复利乘数；<br>
+                      • <strong>(1 + 1.5 × DP<sub>price</sub>)</strong>：每日签到 DP 工坊加成。
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片 3: 🌳 商业科技升级树公式 -->
+          <div class="glass-panel help-card" data-help-id="tree">
+            <div class="help-header">
+              <div class="help-header-left">
+                <span class="help-icon">🌳</span>
+                <div class="help-title-group">
+                  <h3>商业科技升级树</h3>
+                  <p>制作速度 Lv.1-3、优化选址 1.45<sup>lvl-1</sup> 指数递增与客流扩张</p>
+                </div>
+              </div>
+              <div class="help-header-right">
+                <span class="help-pill">科技研发</span>
+                <span class="help-toggle-arrow">▼</span>
+              </div>
+            </div>
+            <div class="help-body">
+              <div class="help-body-inner">
+                <div class="help-section">
+                  <div class="help-section-title">⚡ 分支一：提升速度 (制作效率)</div>
+                  <p>苦练咖啡冲煮手法，成倍缩短手冲滴滤耗时：</p>
+                  <table class="help-table">
+                    <thead><tr><th>等级</th><th>研发费用</th><th>萃取耗时</th><th>提速幅度</th></tr></thead>
+                    <tbody>
+                      <tr><td>Lv.1</td><td>¥10.00</td><td>2.0 秒</td><td>提速 50%</td></tr>
+                      <tr><td>Lv.2</td><td>¥120.00</td><td>1.0 秒</td><td>提速 100%</td></tr>
+                      <tr><td>Lv.3 (MAX)</td><td>¥600.00</td><td>0.5 秒</td><td>达到手冲急速巅峰</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">📍 分支二：优化选址 (客流运营)</div>
+                  <p>在人流量更大、商机更繁荣的街区设摊，最高可研发至 <strong>Lv.50</strong>：</p>
+                  <div class="formula-box">
+                    <div class="formula-line"><span class="formula-label">选址升级费用递增公式:</span> <span class="formula-math">Cost(lvl) = round(25 × 1.45<sup>lvl - 1</sup>) (元)</span></div>
+                    <div class="formula-desc">
+                      • Lv.1: ¥25 | Lv.2: ¥36 | Lv.3: ¥53 | Lv.4: ¥76 | Lv.5: ¥111 ...<br>
+                      • Lv.10: ¥716 | Lv.15: ¥4,601 | Lv.20: ¥29,510<br>
+                      采用 1.45 增量底数，确保平滑成长与中长期挑战性。
+                    </div>
+                  </div>
+                  <div class="formula-box" style="margin-top: 10px;">
+                    <div class="formula-line"><span class="formula-label">客流加成计算公式:</span> <span class="formula-math">TrafficRate = 50% + 10% × lvl</span></div>
+                    <div class="formula-desc">
+                      每级直接为基础客流增加 +10%。当配合进阶研发【煽动家】的 2.0x 翻倍加成时，客流率可迅速达到 100% 满额，并超额溢出助推双杯连售！
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片 4: 🎒 摆摊经验重置与里程碑 -->
+          <div class="glass-panel help-card" data-help-id="prestige">
+            <div class="help-header">
+              <div class="help-header-left">
+                <span class="help-icon">🎒</span>
+                <div class="help-title-group">
+                  <h3>摆摊经验重置与里程碑</h3>
+                  <p>¥100 阶梯折算门槛、宽幅横向进度条与 3 EP 保留小摊特权</p>
+                </div>
+              </div>
+              <div class="help-header-right">
+                <span class="help-pill">声誉声望</span>
+                <span class="help-toggle-arrow">▼</span>
+              </div>
+            </div>
+            <div class="help-body">
+              <div class="help-body-inner">
+                <div class="help-section">
+                  <div class="help-section-title">🔄 摆摊经验 (EP) 重置门槛</div>
+                  <p>当单局现金积累达到 <strong>¥100.00</strong> 时，解锁摆摊经验重置功能。点击重置将结清当前小摊，将经营沉淀转化为珍贵的<strong>摆摊经验 (EP)</strong>。</p>
+                  <p><strong>递增折算序列：</strong>现金达 ¥100.00 时获得 <strong>1 经验点数 (EP)</strong>；后续递增序列为 ¥500 (2 EP)、¥1,000 (3 EP)、¥5,000 (4 EP)、¥10,000 (5 EP)、¥50,000 (6 EP)...</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">📐 EP 阶梯获得算法</div>
+                  <p>基础 EP 按交替阶梯梯度进行折算，随着资金数量级跨越而提升：</p>
+                  <table class="help-table">
+                    <thead><tr><th>所需现金门槛</th><th>折算基础 EP</th><th>梯度跳跃规则</th></tr></thead>
+                    <tbody>
+                      <tr><td>¥100.00</td><td>1 EP</td><td>初始起点</td></tr>
+                      <tr><td>¥500.00</td><td>2 EP</td><td>×5 跳跃</td></tr>
+                      <tr><td>¥1,000.00</td><td>3 EP</td><td>×2 跳跃 (质变节点)</td></tr>
+                      <tr><td>¥5,000.00</td><td>4 EP</td><td>×5 跳跃</td></tr>
+                      <tr><td>¥10,000.00</td><td>5 EP</td><td>×2 跳跃</td></tr>
+                      <tr><td>¥50,000.00</td><td>6 EP</td><td>×5 跳跃 ...</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="formula-box" style="margin-top: 10px;">
+                    <div class="formula-line"><span class="formula-label">实际获得 EP 公式:</span> <span class="formula-math">EP = round(基础EP × (1 + 1.5 × DP<sub>ep</sub>), 1)</span></div>
+                    <div class="formula-desc">每日签到 DP 工坊中的【摆摊经验获取加成】可直接放大每次重置获得的 EP，加速科技演化。</div>
+                  </div>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">🌟 累计获得经验进度条与 3 EP 质变特权【记下笔记】</div>
+                  <p>在摆摊经验界面顶部设有专门的<strong>宽幅横向累计经验进度条</strong>，醒目标记出 <strong>3 EP</strong> 关键节点：</p>
+                  <div class="formula-box">
+                    <div class="formula-line"><span class="formula-label">【记下笔记】激活条件:</span> <span class="formula-math">历史累计获得经验 TotalEP ≥ 3.0 EP</span></div>
+                    <div class="formula-desc">
+                      • <strong>无需消耗 EP 购买</strong>，只要历史累计获得的经验达到 3.0 EP，特权永久自动生效！<br>
+                      • <strong>特权效果</strong>：此后每次执行摆摊重置时，<strong>滴滤小摊的一切（已购买的全部咖啡滴滤器设备、科技树制作速度与优化选址等级等）全数保留，不再清零！</strong><br>
+                      • 彻底摆脱从零起步的繁琐，直接进入高速自动化滚动时代！
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片 5: 🌟 摆摊经验进阶研发 -->
+          <div class="glass-panel help-card" data-help-id="adv">
+            <div class="help-header">
+              <div class="help-header-left">
+                <span class="help-icon">🌟</span>
+                <div class="help-title-group">
+                  <h3>摆摊经验进阶研发</h3>
+                  <p>自动滴滤 1 EP、现磨不隔夜 1.50x、定价 2<sup>lvl</sup> 指数膨胀与煽动家</p>
+                </div>
+              </div>
+              <div class="help-header-right">
+                <span class="help-pill">指数膨胀</span>
+                <span class="help-toggle-arrow">▼</span>
+              </div>
+            </div>
+            <div class="help-body">
+              <div class="help-body-inner">
+                <div class="help-section">
+                  <div class="help-section-title">⚙️ 自动滴滤 (Auto Drip)</div>
+                  <p><strong>研发消耗: 1 EP</strong>（已移至摆摊经验研发）<br>
+                  彻底解放双手！使全部已购买的咖啡滴滤器在有资金支付原料成本时全自动不间断萃取，并在离线挂机期间持续工作产生收益。</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">☕ 现磨不隔夜 (Fresh Ground)</div>
+                  <p><strong>研发消耗: 2 EP</strong><br>
+                  革新研磨与计数引擎，将小摊主界面的【升级计数频率】单次升级倍率由 <strong>1.20x 跃迁至 1.50x 复利</strong>！在高等级下将产生高达数倍乃至数十倍的客流消化速度差异。</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">🏷️ 定价是我说了算的 (Exponential Pricing)</div>
+                  <p><strong>研发消耗: 首次升级 1 EP，从第一次升级往后价格翻倍递增 (2<sup>Level</sup> EP)</strong>（可无限升级）<br>
+                  游戏中最为纯粹狂暴的双重指数膨胀引擎（消耗翻倍、倍率亦翻倍）：</p>
+                  <div class="formula-box">
+                    <div class="formula-line"><span class="formula-label">售价指数倍率公式:</span> <span class="formula-math">Multiplier = 2<sup>Level</sup></span></div>
+                    <div class="formula-line"><span class="formula-label">升级研发费用公式:</span> <span class="formula-math">Cost(Level) = 2<sup>Level</sup> EP</span></div>
+                    <div class="formula-desc">
+                      • Lv.0: 1.0x (原价 ¥3.00)<br>
+                      • Lv.1 (消耗 1 EP): <strong>2.0x</strong> (¥6.00)<br>
+                      • Lv.2 (消耗 2 EP): <strong>4.0x</strong> (¥12.00)<br>
+                      • Lv.3 (消耗 4 EP): <strong>8.0x</strong> (¥24.00)<br>
+                      • Lv.4 (消耗 8 EP): <strong>16.0x</strong> (¥48.00)<br>
+                      • Lv.5 (消耗 16 EP): <strong>32.0x</strong> (¥96.00)...<br>
+                      配合成就复利与 DP 售价加成，收益呈几何级狂飙！
+                    </div>
+                  </div>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">📢 煽动家 (Agitator)</div>
+                  <p><strong>研发消耗: 3 EP</strong><br>
+                  巧舌如簧吸引街头人潮，直接为全摊位客流提供 <strong>整整 2.0x（翻倍）</strong> 加成，使优化选址的客流收益瞬间翻倍！</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片 6: 📅 每日签到与点数工坊 -->
+          <div class="glass-panel help-card" data-help-id="daily">
+            <div class="help-header">
+              <div class="help-header-left">
+                <span class="help-icon">📅</span>
+                <div class="help-title-group">
+                  <h3>每日签到与点数工坊</h3>
+                  <p>24 小时真实自然时间冷却、每日点数 (DP) 与线性保底加成机制</p>
+                </div>
+              </div>
+              <div class="help-header-right">
+                <span class="help-pill">永久基石</span>
+                <span class="help-toggle-arrow">▼</span>
+              </div>
+            </div>
+            <div class="help-body">
+              <div class="help-body-inner">
+                <div class="help-section">
+                  <div class="help-section-title">🎁 每日签到机制</div>
+                  <p>每 <strong>24 小时</strong> 真实自然时间可手动签到领取 <strong>1 每日点数 (DP)</strong>。冷却时间基于系统时间戳跨会话持续倒计时，不受页面关闭影响。</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">🛡️ 线性保底无稀释加成法则</div>
+                  <p>DP 投入的效果采用<strong>高额线性加成 (非复利)</strong>，重置摆摊经验时<strong>绝对保留</strong>：</p>
+                  <table class="help-table">
+                    <thead><tr><th>强化方向</th><th>单次投入效果</th><th>当前收益公式</th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td>🏷️ 滴滤咖啡售价加成</td>
+                        <td>每次投入 +1.5x 单杯售价</td>
+                        <td>Multiplier = 1 + 1.5 × Lv</td>
+                      </tr>
+                      <tr>
+                        <td>🎒 摆摊经验获取加成</td>
+                        <td>每次投入 +1.5x EP 重置收益</td>
+                        <td>Multiplier = 1 + 1.5 × Lv</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="formula-box" style="margin-top: 10px;">
+                    <div class="formula-line"><span class="formula-label">DP 投入示例:</span> <span class="formula-math">投入 2 DP ➔ 售价放大至 4.0x，EP 收益放大至 4.0x</span></div>
+                    <div class="formula-desc">
+                      DP 加成为永久全局属性，即使多次重置声誉，DP 等级也永不归零，是跨阶段经营的坚实底蕴。
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片 7: 🏆 成就勋章与全局售价复利 -->
+          <div class="glass-panel help-card" data-help-id="achieve">
+            <div class="help-header">
+              <div class="help-header-left">
+                <span class="help-icon">🏆</span>
+                <div class="help-title-group">
+                  <h3>成就勋章与全局售价复利</h3>
+                  <p>1.02<sup>N</sup> 核心复利公式、45 个商业里程碑与净收益膨胀</p>
+                </div>
+              </div>
+              <div class="help-header-right">
+                <span class="help-pill">复利核心</span>
+                <span class="help-toggle-arrow">▼</span>
+              </div>
+            </div>
+            <div class="help-body">
+              <div class="help-body-inner">
+                <div class="help-section">
+                  <div class="help-section-title">🌟 核心复利公式</div>
+                  <p>每个已解锁的成就都会成为一个 1.02 的指数乘数，相互复利累乘：</p>
+                  <div class="formula-box">
+                    <div class="formula-line"><span class="formula-label">成就总售价乘数公式:</span> <span class="formula-math">Multiplier = 1.02<sup>N</sup> (N 为已解锁成就总数)</span></div>
+                    <div class="formula-desc">
+                      随着商业网络发展，成就数量不断攀升，复利乘数将呈现令人惊叹的指数增长：
+                    </div>
+                  </div>
+                  <table class="help-table" style="margin-top: 10px;">
+                    <thead><tr><th>解锁成就数 (N)</th><th>复利乘数 (1.02<sup>N</sup>)</th><th>净增益幅度</th></tr></thead>
+                    <tbody>
+                      <tr><td>1 个成就</td><td>1.020x</td><td>+2.0%</td></tr>
+                      <tr><td>5 个成就</td><td>1.104x</td><td>+10.4%</td></tr>
+                      <tr><td>10 个成就</td><td>1.219x</td><td>+21.9%</td></tr>
+                      <tr><td>20 个成就</td><td>1.486x</td><td>+48.6%</td></tr>
+                      <tr><td>30 个成就</td><td>1.811x</td><td>+81.1%</td></tr>
+                      <tr><td>40 个成就</td><td>2.208x</td><td>+120.8%</td></tr>
+                      <tr><td>45 个成就 (全满)</td><td>2.438x</td><td>+143.8%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">✨ 成就与原料成本完全隔离</div>
+                  <p>与进阶定价不同，<strong>成就勋章带来的 1.02x 复利加成是纯粹的荣誉净收益，绝不会推高单杯制作成本</strong>！成就越多，单杯纯利润空间越大！</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片 8: 🌙 离线挂机收益算法 -->
+          <div class="glass-panel help-card" data-help-id="offline">
+            <div class="help-header">
+              <div class="help-header-left">
+                <span class="help-icon">🌙</span>
+                <div class="help-title-group">
+                  <h3>离线挂机收益算法</h3>
+                  <p>真实离线时间戳校验、自动滴滤离线模拟与上线一键领取结算</p>
+                </div>
+              </div>
+              <div class="help-header-right">
+                <span class="help-pill">离线运转</span>
+                <span class="help-toggle-arrow">▼</span>
+              </div>
+            </div>
+            <div class="help-body">
+              <div class="help-body-inner">
+                <div class="help-section">
+                  <div class="help-section-title">⏱️ 离线挂机运作条件</div>
+                  <p>当您研发了<strong>【自动滴滤】</strong>后，关闭网页或离线时，咖啡工坊的生产线不会停止！系统将记录您最后离线的时间戳（基于 UTC 毫秒），并在下次重新打开网页时精准结算离线产出。</p>
+                </div>
+
+                <div class="help-section">
+                  <div class="help-section-title">📊 离线结算推演机制</div>
+                  <p>离线期间系统按您的<strong>滴滤器数量</strong>、<strong>制作速度</strong>、<strong>客流频率</strong>与<strong>当前资金</strong>进行安全模拟：自动扣除原料成本、萃取咖啡并售出，将积累的离线净收益安全入账。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ================== 页面面板 6: 系统设置与存档 ================== -->
+    <section class="tab-pane" id="tab-settings">
+      <div class="settings-container">
+        <!-- 界面风格与视觉主题 (MIUIX / HyperOS 与 深空磨砂 双主题) -->
+        <div class="glass-panel settings-card" id="theme-settings-card">
+          <h3><span>🎨</span> 界面风格与主题视觉</h3>
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>选择显示风格</h4>
+              <p id="theme-status-desc">支持在默认深空磨砂玻璃与小米澎湃 Miuix 超椭圆风格间随时切换。</p>
+            </div>
+            <div class="theme-btn-group" id="theme-btn-group">
+              <button type="button" class="btn-theme-opt active" data-theme="cyber">🌌 深空磨砂 (默认)</button>
+              <button type="button" class="btn-theme-opt" data-theme="miuix">📱 澎湃 Miuix (淡蓝·官方源)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel settings-card">
+          <h3><span>💾</span> 本地数据与离线挂机</h3>
+          
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>自动保存状态</h4>
+              <p>游戏定时自动写入 LocalStorage 本地存储，关闭页面时自动同步。</p>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #34d399;" id="last-saved-time">刚才</span>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>自动保存间隔</h4>
+              <p id="autosave-interval-desc">当前频率：每 10 秒自动保存一次到本地存储 (默认推荐)</p>
+            </div>
+            <div class="autosave-btn-group" id="autosave-btn-group">
+              <button type="button" class="btn-interval-opt" data-interval="5">5s</button>
+              <button type="button" class="btn-interval-opt active" data-interval="10">10s (默认)</button>
+              <button type="button" class="btn-interval-opt" data-interval="20">20s</button>
+              <button type="button" class="btn-interval-opt" data-interval="30">30s</button>
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>手动即时保存</h4>
+              <p>立即将当前游戏进度固化保存至浏览器。</p>
+            </div>
+            <button class="btn-settings-action" id="settings-save-btn">立即写入存档</button>
+          </div>
+        </div>
+
+        <div class="glass-panel settings-card">
+          <h3><span>📤</span> 存档字符串导入 / 导出 (Base64)</h3>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>导出 Base64 存档</h4>
+              <p>将存档编码为安全文本字符串，便于跨设备转移或备份。</p>
+            </div>
+            <button class="btn-settings-action" id="settings-export-btn">导出存档</button>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>导入 Base64 存档</h4>
+              <p>粘贴已导出的 Base64 字符串以快速恢复进度。</p>
+            </div>
+            <button class="btn-settings-action" id="settings-import-btn">导入存档</button>
+          </div>
+        </div>
+
+        <!-- 开发者测试辅助 -->
+        <div class="glass-panel settings-card">
+          <h3><span>🛠️</span> 开发者测试工具</h3>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>增加测试资金 (+¥1,000 RMB)</h4>
+              <p>向当前账户立即注入 ¥1,000.00 现金储备，用于快速测试各项升级与数值链路。</p>
+            </div>
+            <button class="btn-settings-action" id="settings-add-1000r-btn" style="border-color: #f59e0b; color: #fbbf24; background: rgba(245, 158, 11, 0.12);">+¥1,000 RMB</button>
+          </div>
+        </div>
+
+        <!-- 运行设备与环境识别 (UA 深度检测与自适应状态) -->
+        <div class="glass-panel settings-card" id="device-detect-card">
+          <h3><span>📱</span> 运行设备与环境识别 (UA 自动适配)</h3>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>当前布局模式</h4>
+              <p id="device-mode-desc">正在通过 User-Agent 标识与当前视口尺寸自动适配最佳交互形态。</p>
+            </div>
+            <span class="badge-limit" id="device-type-badge" style="background: rgba(16,185,129,0.2); color: #34d399; font-size: 0.82rem;">📱 移动端自适应模式</span>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>操作系统与浏览器</h4>
+              <p id="device-os-text">识别中...</p>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 0.8rem; color: #38bdf8;" id="device-screen-val">--</span>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>客户端 User-Agent (UA) 完整标识</h4>
+              <p style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); word-break: break-all; line-height: 1.45;" id="device-ua-text">识别中...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel settings-card">
+          <h3><span>⚠️</span> 数据重置</h3>
+
+          <div class="settings-row">
+            <div class="settings-meta">
+              <h4>抹除全部数据 (Hard Reset)</h4>
+              <p>永久删除所有本地存档并恢复至初始创业状态，该操作不可逆。</p>
+            </div>
+            <button class="btn-settings-action danger" id="settings-reset-btn">抹除数据并重新开始</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================== 弹窗: Base64 导入导出 ================== -->
+  <div class="modal-overlay" id="save-modal">
+    <div class="glass-panel modal-window">
+      <div class="modal-header-row">
+        <h3 id="save-modal-title"><span>📤</span> 导出 Base64 存档</h3>
+        <button class="modal-close-btn" id="save-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="save-modal-desc">以下是您的 Base64 游戏存档字符串，可复制保存：</p>
+        <textarea class="save-string-area" id="save-modal-textarea" spellcheck="false"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary-action" id="save-modal-cancel">取消</button>
+        <button class="buy-btn" id="save-modal-action-btn">
+          <span>复制到剪贴板</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================== 弹窗: 离线挂机收益补偿结算 ================== -->
+  <div class="modal-overlay" id="offline-modal">
+    <div class="glass-panel modal-window" style="max-width: 480px;">
+      <div class="modal-header-row">
+        <h3><span>🌙</span> 欢迎回来！离线挂机进度结算</h3>
+      </div>
+      <div class="modal-body">
+        <p>在您离线期间，您的自动滴滤设备与客流系统持续运转，累计挂机统计如下：</p>
+        
+        <div class="offline-stat-grid">
+          <div class="offline-stat-item">
+            <span class="o-label">挂机时长</span>
+            <span class="o-val" id="off-duration">00:00:00</span>
+          </div>
+          <div class="offline-stat-item">
+            <span class="o-label">自动萃取产出</span>
+            <span class="o-val" id="off-brewed">0 杯</span>
+          </div>
+          <div class="offline-stat-item">
+            <span class="o-label">客流售出咖啡</span>
+            <span class="o-val" id="off-sold">0 杯</span>
+          </div>
+          <div class="offline-stat-item" style="border-color: rgba(16, 185, 129, 0.35);">
+            <span class="o-label">离线净收益</span>
+            <span class="o-val" style="color: #34d399;" id="off-income">+¥0.00</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: center;">
+        <button class="buy-btn" id="offline-modal-claim" style="width: 100%; padding: 12px;">
+          <span>收取离线收益并进入商业帝国</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================== 弹窗: 摆摊经验重置确认 ================== -->
+  <div class="modal-overlay" id="prestige-confirm-modal">
+    <div class="glass-panel modal-window" style="max-width: 480px;">
+      <div class="modal-header-row">
+        <h3 id="prestige-confirm-title"><span>🎒</span> 确认摆摊经验重置</h3>
+      </div>
+      <div class="modal-body" id="prestige-confirm-body">
+        <!-- 动态填充重置详情 -->
+      </div>
+      <div class="modal-footer" style="gap: 12px;">
+        <button class="btn-secondary-action" id="prestige-confirm-cancel" style="flex: 1; padding: 11px 0; font-size: 0.88rem; border-radius: 10px;">取消</button>
+        <button class="btn-prestige-execute" id="prestige-confirm-execute" style="flex: 1; padding: 11px 0; font-size: 0.88rem; border-radius: 10px;">
+          确认重置
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 消息容器 -->
+  <div id="toast-container"></div>
+
+  <!-- 游戏脚本引用 (按依赖顺序加载，支持直接 file:// 双击打开) -->
+  <script src="tree.js?v=a0.7.0"></script>
+  <script src="save.js?v=a0.7.0"></script>
+  <script src="game.js?v=a0.7.0"></script>
+</body>
+</html>

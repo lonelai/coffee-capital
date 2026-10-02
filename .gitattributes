@@ -1,0 +1,6 @@
+# 部署副本按字节比对（tools/check-sync.mjs），禁止 Git 改写换行符。
+# 现状：index.html/game.js/save.js/styles.css/index.legacy.html 为 CRLF，tree.js/device.js/_worker.js/_headers/wrangler.jsonc 为 LF。
+* -text
+*.png binary
+*.jpg binary
+*.zip binary

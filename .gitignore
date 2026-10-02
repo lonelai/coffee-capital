@@ -1,0 +1,14 @@
+# 依赖与归档（Vue 重写残留整份保存在 _archive/ 下）
+node_modules/
+_archive/
+
+# 部署打包产物，由 tools/check-sync.mjs 校验并以根目录为准重建
+*.zip
+
+# 本地浏览器调试残留
+.temp-chrome-profile/
+
+# 构建缓存与系统噪声
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
